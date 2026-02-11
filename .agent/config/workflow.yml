@@ -1,0 +1,216 @@
+# ワークフロー定義
+# フェーズ制MVP開発と自律テスト-修正ループを定義
+
+workflow:
+
+  # === フェーズ制 MVP 開発フロー ===
+  phases:
+    phase_1_specification:
+      name: "仕様策定"
+      actor: [architect, reviewer]
+      steps:
+        - "STEP 1: 要求仕様書作成 (docs/specs/requirements.md)"
+        - "STEP 2: 技術設計書作成 (docs/specs/design.md)"
+        - "STEP 3: 実装タスク分解 (.agent/tasks/)"
+        - "仕様書レビュー (Reviewer による APPROVED)"
+      exit_criteria:
+        - "requirements.md が存在する"
+        - "design.md が存在する"
+        - "レビュー記録が .agent/reviews/ に存在する"
+        - "全指摘事項が解決済み"
+
+    phase_2_implementation:
+      name: "実装"
+      actor: [developer]
+      steps:
+        - "TDD: テスト先行 → 実装 → リファクタリング"
+        - "ユニットテスト全パス確認"
+        - "開発完了レポート作成"
+      exit_criteria:
+        - "全ユニットテストがパス"
+        - "claude_workspace/development-completion-report.md が存在する"
+        - "アプリケーションが起動・基本動作する"
+      auto_transition: "Phase 2 完了後、自動的に Phase 3 に移行（人間の介入不要）"
+
+    phase_3_testing:
+      name: "独立E2Eテスト"
+      actor: [tester]
+      steps:
+        - "STEP A: E2Eテスト計画策定（ゼロベース）"
+        - "STEP B: Playwright MCPでテスト実行"
+        - "テスト結果レポート作成"
+        - "エビデンス保存"
+      exit_criteria:
+        - "全E2Eテストが合格"
+      on_failure: "Phase 4 に自動移行"
+      important_rules:
+        - "ループ再実行時も、ゼロベースでテスト計画を再策定する"
+        - "ルーティング定義を元に全機能を一覧してテスト漏れを防ぐ"
+        - "まず正常系の基本動作を確認してから、準正常系・異常系を実施"
+        - "E2Eテスト省略は重大違反"
+
+    phase_4_correction:
+      name: "修正"
+      actor: [developer]
+      steps:
+        - "テスト結果分析 → 根本原因特定"
+        - "全不具合の修正"
+        - "修正レポート作成"
+      on_completion: "Phase 3 を再実行"
+
+    phase_5_final_report:
+      name: "最終報告"
+      actor: [pm]
+      steps:
+        - "FINAL_MVP_REPORT.md 作成"
+        - "仕様書の最終確認・更新"
+        - "テスト用アカウント・サンプルデータ準備"
+        - "inbox 元ファイルを processed/ に移動"
+        - "lessons-learned に知見集約"
+
+  # === 自律テスト-修正ループ ===
+  autonomous_test_loop:
+    description: |
+      Phase 3 と Phase 4 を全E2Eテスト合格まで自動反復する。
+      過去の開発で最も効果的だった仕組み。
+    max_iterations: 5
+    on_max_iterations:
+      - "PMに差し戻し"
+      - "根本的な問題を分析"
+      - "必要に応じてアーキテクチャ変更を検討"
+      - "lessons-learned に根本原因を記録"
+    artifact_archiving:
+      rule: "各ループの成果物を loop-N/ ディレクトリにアーカイブ"
+      location: "claude_workspace/downloads/loop-N/"
+    evidence_requirements:
+      - "スクリーンショット (claude_workspace/downloads/screenshots/)"
+      - "コンソールログ (claude_workspace/downloads/logs/)"
+      - "不合格テストの再現手順・期待挙動・実際のエラー内容"
+
+  # === 個別タスクのライフサイクル ===
+  task_lifecycle:
+    statuses:
+      - name: CREATED
+        description: "PMがタスクを作成した状態"
+        next: [IN_PROGRESS]
+        actor: pm
+
+      - name: IN_PROGRESS
+        description: "担当者が作業中"
+        next: [SELF_REVIEW]
+        actor: assignee
+
+      - name: SELF_REVIEW
+        description: "担当者自身によるセルフレビュー中"
+        next: [IN_REVIEW, TESTING, IN_PROGRESS]
+        actor: assignee
+
+      - name: IN_REVIEW
+        description: "レビュアーによるレビュー中（設計タスクの場合）"
+        next: [APPROVED, REJECTED]
+        actor: reviewer
+        condition: "設計タスクの場合のみ"
+
+      - name: APPROVED
+        description: "レビュー合格。実装に進む"
+        next: [IN_PROGRESS]
+        actor: pm
+
+      - name: TESTING
+        description: "テスターによるテスト中（実装タスクの場合）"
+        next: [DONE, REJECTED]
+        actor: tester
+
+      - name: DONE
+        description: "すべての品質ゲートをクリア。完了"
+        next: []
+        actor: pm
+
+      - name: REJECTED
+        description: "不合格。差し戻し"
+        next: [IN_PROGRESS, REASSIGNED]
+        actor: pm
+        rules:
+          - "不合格理由を具体的に記録すること"
+          - "3回不合格でPMに差し戻し → 別担当者アサイン"
+
+      - name: REASSIGNED
+        description: "3回不合格により別担当者に再アサイン"
+        next: [IN_PROGRESS]
+        actor: pm
+
+  # タスク種別ごとのフロー
+  task_types:
+    design:
+      flow: "CREATED → IN_PROGRESS → SELF_REVIEW → IN_REVIEW → APPROVED → DONE"
+      required_artifacts:
+        - "仕様書 (docs/specs/)"
+        - "レビュー記録 (.agent/reviews/)"
+      quality_gates:
+        - "担当者以外のレビュアーによるレビュー合格"
+
+    implementation:
+      flow: "CREATED → IN_PROGRESS → SELF_REVIEW → TESTING → DONE"
+      required_artifacts:
+        - "テストコード (tests/)"
+        - "アプリケーションコード (app/)"
+        - "テストレポート (.agent/reviews/)"
+      quality_gates:
+        - "ユニットテスト全パス"
+        - "テスターによるテスト合格"
+      tdd_rules:
+        - "テストを先に書く (RED)"
+        - "テストをパスする最小実装 (GREEN)"
+        - "リファクタリング (REFACTOR)"
+
+    bugfix:
+      flow: "CREATED → IN_PROGRESS → SELF_REVIEW → TESTING → DONE"
+      required_artifacts:
+        - "再現テスト (tests/)"
+        - "修正コード (app/)"
+        - "テストレポート (.agent/reviews/)"
+      quality_gates:
+        - "再現テストが修正前に失敗、修正後にパスすること"
+        - "既存テストが全パス"
+
+    refactor:
+      flow: "CREATED → IN_PROGRESS → SELF_REVIEW → TESTING → DONE"
+      required_artifacts:
+        - "リファクタリング後のコード (app/)"
+        - "テストレポート (.agent/reviews/)"
+      quality_gates:
+        - "既存テストが全パス（振る舞いが変わっていないこと）"
+
+  # 差し戻しルール
+  rejection_rules:
+    max_count: 3
+    tracking: "タスクファイル内の rejection_count フィールド"
+    on_first_rejection:
+      - "不合格理由を記録"
+      - "担当者に差し戻し"
+      - "lessons-learned に記録"
+    on_max_rejection:
+      - "PMに差し戻し"
+      - "別の担当者をアサイン"
+      - "根本原因を lessons-learned に記録"
+
+  # 品質ゲート定義
+  quality_gates:
+    before_submission:
+      - "すべてのテストがパス"
+      - "セキュリティスキャンで重大な問題なし"
+      - "仕様書が最新状態"
+      - "アプリケーションが実際に動作する"
+
+    before_task_start:
+      - ".agent/knowledge/lessons-learned.md を確認"
+      - "関連仕様書を確認"
+      - "依存タスクが完了していること"
+
+  # 深い思考が必要な場面
+  deep_thinking_triggers:
+    - "アーキテクチャ設計"
+    - "データモデル設計"
+    - "複雑なビジネスロジック"
+    - "セキュリティ設計"
+    - "テスト-修正ループ5回超過時の根本原因分析"

@@ -1,0 +1,181 @@
+# ツール・MCPカタログ
+# 全エージェントが参照可能なツール一覧
+# メンバー別の利用可否を明記
+
+tools:
+  # === メンバー別ツール利用可否 ===
+  member_capabilities:
+    claude_code:
+      description: "Claude Code (Task サブエージェント) で利用可能なツール"
+      available:
+        - ファイル操作 (Read / Write / Edit / Glob / Grep)
+        - Bash (シェルコマンド)
+        - Task (サブエージェント起動)
+        - WebFetch / WebSearch
+        - Playwright MCP (E2Eテスト)
+        - Context7 MCP (ライブラリドキュメント)
+        - o3-search MCP (Web検索)
+        - IDE MCP (診断情報)
+        - Claude Code Skills (/build, /test, /analyze 等)
+      not_available: []
+
+    codex_cli:
+      description: "Codex CLI で利用可能なツール"
+      available:
+        - ファイル読み書き (ファイルシステム経由)
+        - シェルコマンド実行
+        - Web検索 (組み込み)
+      not_available:
+        - Playwright MCP (E2Eテストの実行は Claude Code のみ)
+        - Context7 MCP
+        - o3-search MCP
+        - IDE MCP
+        - Claude Code Skills
+      note: "MCP非対応。ファイルシステム経由での入出力連携のみ"
+
+  # === 開発環境 ===
+  development:
+    claude_code:
+      name: "Claude Code"
+      description: "メイン開発環境・PMセッション・サブエージェント実行基盤"
+      member: "claude_code"
+      builtin_tools:
+        - Read: "ファイル読み込み"
+        - Write: "ファイル作成"
+        - Edit: "ファイル編集"
+        - Glob: "ファイル検索（パターン）"
+        - Grep: "ファイル内容検索"
+        - Bash: "シェルコマンド実行"
+        - Task: "サブエージェント起動"
+        - WebFetch: "Web取得"
+        - WebSearch: "Web検索"
+
+    codex_cli:
+      name: "Codex CLI"
+      description: "確実な実装・レビュー・大規模作業に最適化されたAIエージェント"
+      member: "codex_cli"
+      command: "codex"
+      invocation: "scripts/run-codex.sh <task-file> <role>"
+      usage: |
+        # 直接実行
+        codex --approval-mode full-auto "指示内容"
+        # スクリプト経由（推奨）
+        ./scripts/run-codex.sh .agent/tasks/TASK-XXX.md Developer
+      note: "認証済みで即時利用可能。MCP非対応のためファイルベースで連携"
+
+  # === MCP サーバー ===
+  mcp_servers:
+    playwright:
+      name: "Playwright MCP"
+      description: "E2Eテスト。ブラウザ操作の自動化"
+      available_to: [tester]
+      key_tools:
+        - playwright_navigate: "URL遷移"
+        - playwright_click: "要素クリック"
+        - playwright_fill: "入力フィールド入力"
+        - playwright_screenshot: "スクリーンショット取得"
+        - playwright_get_visible_text: "ページテキスト取得"
+        - playwright_evaluate: "JavaScript実行"
+        - playwright_console_logs: "コンソールログ取得"
+      test_location: "tests/e2e/playwright/"
+
+    context7:
+      name: "Context7 MCP"
+      description: "ライブラリ・フレームワークの最新ドキュメント参照"
+      available_to: [architect, developer, reviewer]
+      key_tools:
+        - resolve-library-id: "ライブラリID解決"
+        - query-docs: "ドキュメント検索"
+      usage: |
+        1. resolve-library-id でライブラリIDを取得
+        2. query-docs でドキュメントを検索
+
+    o3_search:
+      name: "o3-search MCP"
+      description: "Web検索。最新情報やエラー解決"
+      available_to: [pm, architect, developer, reviewer, tester]
+      key_tools:
+        - o3-search: "自然言語でのWeb検索"
+
+    ide:
+      name: "IDE MCP"
+      description: "VS Code 連携。診断情報取得・コード実行"
+      available_to: [developer, tester]
+      key_tools:
+        - getDiagnostics: "言語診断情報取得"
+        - executeCode: "Jupyterカーネルでコード実行"
+
+  # === Claude Code Skills ===
+  skills:
+    project_management:
+      - name: "/task"
+        description: "タスク管理"
+        available_to: [pm]
+      - name: "/spawn"
+        description: "並列エージェント起動"
+        available_to: [pm]
+      - name: "/load"
+        description: "プロジェクトコンテキスト読み込み"
+        available_to: [pm, architect]
+      - name: "/estimate"
+        description: "工数見積もり"
+        available_to: [pm, architect]
+
+    design:
+      - name: "/design"
+        description: "システム設計"
+        available_to: [architect]
+      - name: "/explain"
+        description: "技術ドキュメント・説明"
+        available_to: [architect, developer]
+      - name: "/document"
+        description: "ドキュメント生成"
+        available_to: [architect]
+
+    development:
+      - name: "/build"
+        description: "プロジェクトビルド"
+        available_to: [developer]
+      - name: "/improve"
+        description: "コード改善"
+        available_to: [developer]
+      - name: "/troubleshoot"
+        description: "デバッグ・問題解決"
+        available_to: [developer, tester]
+      - name: "/migrate"
+        description: "マイグレーション"
+        available_to: [developer]
+
+    quality:
+      - name: "/test"
+        description: "テスト実行"
+        available_to: [developer, tester]
+      - name: "/analyze"
+        description: "コード分析"
+        available_to: [reviewer, developer]
+      - name: "/scan"
+        description: "セキュリティスキャン"
+        available_to: [reviewer, tester]
+
+    operations:
+      - name: "/git"
+        description: "Git操作"
+        available_to: [pm, developer]
+      - name: "/deploy"
+        description: "デプロイ"
+        available_to: [pm]
+      - name: "/cleanup"
+        description: "プロジェクトクリーンアップ"
+        available_to: [pm, developer]
+
+  # === ツール選択ガイドライン ===
+  selection_guide:
+    file_search: "Glob を使う（find/ls ではなく）"
+    content_search: "Grep を使う（grep/rg ではなく）"
+    file_read: "Read を使う（cat/head/tail ではなく）"
+    file_edit: "Edit を使う（sed/awk ではなく）"
+    file_create: "Write を使う（echo/cat ではなく）"
+    parallel_tasks: "Task ツールで並列サブエージェント起動"
+    e2e_test: "Playwright MCP を使う"
+    library_docs: "Context7 MCP を使う"
+    web_search: "o3-search MCP または WebSearch を使う"

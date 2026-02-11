@@ -1,0 +1,171 @@
+# チーム構成定義
+# メンバー（Claude Code / Codex CLI）の特性とアサインルールを定義
+
+team:
+  name: "Project Workflow Team"
+
+  # === メンバー定義 ===
+  members:
+    claude_code:
+      name: "Claude Code"
+      type: "subagent"  # Task ツールで起動
+      strengths:
+        - クリエイティブな発想・UIデザイン
+        - 柔軟性・適応力（曖昧な要件への対応）
+        - 軽微な作業への迅速な対応
+        - MCP連携（Playwright, Context7 等）
+      weaknesses:
+        - 超大規模な一括実装には不向き
+      best_for:
+        - UI/フロントエンド設計・実装
+        - 初期仕様の発想・要求分析
+        - E2Eテスト実行（Playwright MCP）
+        - 軽微な修正・微調整
+      invocation: |
+        Task ツール (subagent_type: general-purpose) で起動。
+        MCP（Playwright, Context7, o3-search 等）が利用可能。
+
+    codex_cli:
+      name: "Codex CLI"
+      type: "cli"  # Bash で codex コマンド実行
+      strengths:
+        - 仕様に対する確実・正確な実装
+        - 大規模コードの一貫した生成
+        - 体系的なコード/仕様レビュー
+        - 明確な要件に対する高い実行力
+      weaknesses:
+        - MCP連携不可（Playwright等は使えない）
+        - 対話的な探索には不向き
+      best_for:
+        - バックエンドロジック・データモデル実装
+        - 仕様レビュー・コードレビュー
+        - 大規模リファクタリング
+        - テスト計画の網羅的な策定
+        - 不具合修正（根本原因特定と確実な修正）
+      invocation: |
+        Bash で codex コマンドを実行。
+        タスクファイルと仕様書のパスを明示的に渡す。
+        ファイルシステム経由で入出力を連携する。
+
+  # === アサインマトリクス ===
+  assignment_matrix:
+    architect:
+      default: claude_code
+      reason: "初期仕様の発想力・柔軟なUI設計"
+    developer_backend:
+      default: codex_cli
+      reason: "明確な要件に対する確実な実装"
+    developer_frontend:
+      default: claude_code
+      reason: "UIデザイン・クリエイティブな実装"
+    developer_large:
+      default: codex_cli
+      reason: "大量コードの一貫した生成"
+    developer_minor_fix:
+      default: claude_code
+      reason: "柔軟で迅速な対応"
+    reviewer_spec:
+      default: codex_cli
+      reason: "仕様との厳密な整合性チェック"
+    reviewer_code:
+      default: codex_cli
+      reason: "体系的なコード品質検証"
+    tester_e2e_execution:
+      default: claude_code
+      reason: "Playwright MCPによる柔軟なテスト"
+    tester_plan:
+      default: codex_cli
+      reason: "網羅的で体系的な計画策定"
+    correction:
+      default: codex_cli
+      reason: "不具合の根本原因特定と確実な修正"
+
+  # === 起動テンプレート ===
+  spawn_templates:
+    claude_code:
+      architect:
+        subagent_type: "general-purpose"
+        model: "sonnet"
+        prompt_prefix: |
+          あなたは Architect（設計者）ロールです。実行メンバー: Claude Code。
+          まず以下を読み込んでください:
+          - CLAUDE.md（プロジェクトルール）
+          - .agent/config/roles.yml（ロール定義）
+          - .agent/knowledge/（知見ベース全体）
+          - 該当タスクファイル（.agent/tasks/）
+          - inbox/（ユーザーからの初期要件）
+
+      developer:
+        subagent_type: "general-purpose"
+        model: "sonnet"
+        prompt_prefix: |
+          あなたは Developer（実装者）ロールです。実行メンバー: Claude Code。
+          TDD（テスト駆動開発）で作業してください。
+          まず以下を読み込んでください:
+          - CLAUDE.md（プロジェクトルール）
+          - .agent/config/roles.yml（ロール定義）
+          - .agent/knowledge/（知見ベース全体）
+          - docs/specs/（仕様書）
+          - 該当タスクファイル（.agent/tasks/）
+
+      reviewer:
+        subagent_type: "general-purpose"
+        model: "opus"
+        prompt_prefix: |
+          あなたは Reviewer（レビュアー）ロールです。実行メンバー: Claude Code。
+          設計やコードの品質を厳密にレビューしてください。
+          まず以下を読み込んでください:
+          - CLAUDE.md（プロジェクトルール）
+          - .agent/config/roles.yml（ロール定義）
+          - .agent/knowledge/（知見ベース全体）
+          - docs/specs/（仕様書）
+          - レビュー対象のタスクファイル（.agent/tasks/）
+
+      tester:
+        subagent_type: "general-purpose"
+        model: "sonnet"
+        prompt_prefix: |
+          あなたは Tester（テスター）ロールです。実行メンバー: Claude Code。
+          Playwright MCP を使ってテストを実行してください。
+          まず以下を読み込んでください:
+          - CLAUDE.md（プロジェクトルール）
+          - .agent/config/roles.yml（ロール定義）
+          - .agent/knowledge/（知見ベース全体）
+          - docs/specs/（仕様書）
+          - claude_workspace/development-completion-report.md
+          - 該当タスクファイル（.agent/tasks/）
+
+    codex_cli:
+      # Codex CLI は scripts/run-codex.sh を経由して起動する
+      # タスクファイルに全コンテキストが記載されていれば独立動作可能
+      invocation_script: "scripts/run-codex.sh"
+      context_files:
+        always_read:
+          - "CLAUDE.md"
+          - ".agent/config/roles.yml"
+          - ".agent/knowledge/lessons-learned.md"
+          - ".agent/knowledge/conventions.md"
+        per_task:
+          - "該当タスクファイル"
+          - "該当仕様書"
+
+  # === コミュニケーション方法 ===
+  communication:
+    primary: "タスクファイル (.agent/tasks/) によるファイルベース連携"
+    secondary: "レビュー記録 (.agent/reviews/) によるフィードバック"
+    knowledge: "ナレッジベース (.agent/knowledge/) による知見共有"
+    workspace: "ワークスペース (claude_workspace/) によるレポート・エビデンス共有"
+    rules:
+      - "エージェント間の直接的なやりとりはタスクファイル経由で行う"
+      - "ステータス変更時はタスクファイルを更新する"
+      - "ブロッカーが発生したらタスクファイルに記録してPMに通知"
+      - "タスクファイルは自己完結的に記述する（どのメンバーでも単独で作業開始できる）"
+      - "Codex CLI はファイルシステム経由でのみ連携する（MCPは利用不可）"
+
+  # === 編成ルール ===
+  formation_rules:
+    - "PMは必ず1名（メインの Claude Code セッション自身が担う）"
+    - "設計者とレビュアーは異なるメンバーを割り当てる"
+    - "タスクの性質に応じて最適なメンバーを選択する"
+    - "不合格3回で別メンバーへの切替も検討する"
+    - "Playwright MCPが必要なタスクは必ず Claude Code にアサインする"

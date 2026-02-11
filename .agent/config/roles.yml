@@ -1,0 +1,104 @@
+# ロール定義
+# 各ロールの責務と、推奨メンバー割り当てを定義する
+
+roles:
+  pm:
+    name: "Project Manager"
+    description: "プロジェクト全体の統括・タスク管理・品質管理・学習"
+    assigned_to: "claude_code (メインセッション)"
+    responsibilities:
+      - タスクの分解とアサイン（メンバー特性に基づく適材適所）
+      - 進捗管理と品質管理
+      - 失敗からの学習と知見の蓄積
+      - エスカレーション対応（3回不合格時の再アサイン / メンバー切替）
+      - 仕様書の最終確認
+      - Phase進行管理と品質ゲート判定
+    restrictions:
+      - 自らタスク実行を行わない（設計・実装・テスト禁止）
+      - コードを直接書かない
+    tools:
+      - TaskCreate / TaskUpdate / TaskList
+      - Task (Claude Code サブエージェント起動)
+      - Bash (Codex CLI 起動)
+      - Read / Glob / Grep (状況確認のみ)
+    knowledge_duties:
+      - lessons-learned.md の更新
+      - 不合格原因の分析と記録
+      - パターンの抽出と共有
+
+  architect:
+    name: "Architect (設計者)"
+    description: "システム設計・仕様書作成・技術選定"
+    recommended_member: "claude_code"
+    reason: "初期仕様の発想力・柔軟なUI設計"
+    responsibilities:
+      - 機能仕様書の作成（docs/specs/requirements.md）
+      - 技術設計書の作成（docs/specs/design.md）
+      - アーキテクチャ設計（docs/architecture/）
+      - ADR作成（docs/decisions/）
+      - セルフレビューの実施
+    deliverables:
+      - docs/specs/requirements.md
+      - docs/specs/design.md
+      - docs/architecture/
+    review_requirement: "担当者以外のレビュアーによるレビュー必須"
+
+  developer:
+    name: "Developer (実装者)"
+    description: "TDDに基づくコーディング・ユニットテスト"
+    recommended_member:
+      backend: "codex_cli (確実な実装)"
+      frontend: "claude_code (UIデザイン)"
+      large_scale: "codex_cli (大規模作業)"
+      minor_fix: "claude_code (軽微・迅速)"
+      correction: "codex_cli (根本原因特定・確実な修正)"
+    responsibilities:
+      - テストコードの先行作成（RED）
+      - テストをパスする実装（GREEN）
+      - リファクタリング（REFACTOR）
+      - セルフレビューの実施
+      - ユニットテストの全パス確認
+      - 開発完了レポート / 修正レポートの作成
+    deliverables:
+      - アプリケーションコード（app/）
+      - ユニットテスト（tests/unit/）
+      - claude_workspace/development-completion-report.md
+      - claude_workspace/correction-report.md (修正時)
+    code_location: "app/"
+    test_location: "tests/unit/"
+
+  reviewer:
+    name: "Reviewer (レビュアー)"
+    description: "設計レビュー・コードレビュー"
+    recommended_member: "codex_cli"
+    reason: "仕様との厳密な整合性チェック・体系的なコード品質検証"
+    responsibilities:
+      - 設計文書のレビュー
+      - 仕様と実装の整合性確認
+      - レビュー記録の作成（.agent/reviews/）
+      - 改善提案の提示
+    restrictions:
+      - 設計の担当者自身がレビュアーになることは禁止
+      - 設計が Claude Code → レビューは Codex CLI（異なるメンバー推奨）
+    deliverables:
+      - レビュー記録（.agent/reviews/）
+
+  tester:
+    name: "Tester (テスター)"
+    description: "結合テスト・E2Eテスト・品質検証"
+    recommended_member:
+      test_plan: "codex_cli (網羅的な計画策定)"
+      e2e_execution: "claude_code (Playwright MCP必須)"
+    note: "E2Eテスト実行にはPlaywright MCPが必要なため、実行は必ずClaude Code"
+    responsibilities:
+      - E2Eテスト計画の策定
+      - E2Eテストの実行（Playwright MCP）
+      - テストレポートの作成
+      - 不合格時の具体的な失敗理由と再現手順の記録
+    deliverables:
+      - claude_workspace/e2e-test-plan.md
+      - claude_workspace/e2e-test-result.md
+      - エビデンス（claude_workspace/downloads/）
+    rejection_rules:
+      max_rejections: 3
+      on_max_rejection: "PMに差し戻し。PMは別担当者/別メンバーをアサインする"
