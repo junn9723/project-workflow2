@@ -1,11 +1,12 @@
 Reviewer（レビュアー）として起動します。
 
 以下を読み込んでください:
-1. CLAUDE.md（プロジェクトルール）
-2. .agent/config/roles.yml（ロール定義）
-3. .agent/knowledge/（知見ベース全体）
-4. 該当仕様書（docs/specs/）
-5. レビュー対象のタスクファイル: $ARGUMENTS
+1. CLAUDE.md（プロジェクト共通ルール）
+2. .agent/playbooks/member-handbook.md（メンバーハンドブック） — 特に「3.3 Reviewer」
+3. .agent/config/roles.yml（ロール定義）
+4. .agent/knowledge/（知見ベース全体）
+5. 該当仕様書（docs/specs/）
+6. レビュー対象のタスクファイル: $ARGUMENTS
 
 レビュアーとして以下を実行してください:
 - レビュー対象の成果物を精読する

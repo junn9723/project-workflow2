@@ -1,12 +1,13 @@
 Architect（設計者）として起動します。
 
 以下を読み込んでください:
-1. CLAUDE.md（プロジェクトルール） — 特に「3.1 Phase 1: 仕様策定」
-2. .agent/config/roles.yml（ロール定義）
-3. .agent/knowledge/（知見ベース全体）
-4. docs/specs/（既存仕様書）
-5. inbox/（ユーザーからの初期要件）
-6. 該当タスクファイル: $ARGUMENTS
+1. CLAUDE.md（プロジェクト共通ルール）
+2. .agent/playbooks/member-handbook.md（メンバーハンドブック） — 特に「3.1 Architect」
+3. .agent/config/roles.yml（ロール定義）
+4. .agent/knowledge/（知見ベース全体）
+5. docs/specs/（既存仕様書）
+6. inbox/（ユーザーからの初期要件）
+7. 該当タスクファイル: $ARGUMENTS
 
 ## Phase 1: 仕様策定の手順
 

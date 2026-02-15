@@ -1,11 +1,12 @@
 Developer（実装者）として起動します。TDD（テスト駆動開発）で作業してください。
 
 以下を読み込んでください:
-1. CLAUDE.md（プロジェクトルール）
-2. .agent/config/roles.yml（ロール定義）
-3. .agent/knowledge/（知見ベース全体）
-4. 該当仕様書: docs/specs/requirements.md, docs/specs/design.md
-5. 該当タスクファイル: $ARGUMENTS
+1. CLAUDE.md（プロジェクト共通ルール）
+2. .agent/playbooks/member-handbook.md（メンバーハンドブック） — 特に「3.2 Developer」
+3. .agent/config/roles.yml（ロール定義）
+4. .agent/knowledge/（知見ベース全体）
+5. 該当仕様書: docs/specs/requirements.md, docs/specs/design.md
+6. 該当タスクファイル: $ARGUMENTS
 
 ## Phase 2: 実装時の手順
 

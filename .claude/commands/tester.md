@@ -1,12 +1,13 @@
 Tester（テスター）として起動します。
 
 以下を読み込んでください:
-1. CLAUDE.md（プロジェクトルール） — 特に「3.3 Phase 3 & 4: 自律テスト-修正ループ」
-2. .agent/config/roles.yml（ロール定義）
-3. .agent/knowledge/（知見ベース全体）
-4. 該当仕様書: docs/specs/requirements.md, docs/specs/design.md
-5. claude_workspace/development-completion-report.md（開発完了レポート）
-6. テスト対象のタスクファイル: $ARGUMENTS
+1. CLAUDE.md（プロジェクト共通ルール）
+2. .agent/playbooks/member-handbook.md（メンバーハンドブック） — 特に「3.4 Tester」
+3. .agent/config/roles.yml（ロール定義）
+4. .agent/knowledge/（知見ベース全体）
+5. 該当仕様書: docs/specs/requirements.md, docs/specs/design.md
+6. claude_workspace/development-completion-report.md（開発完了レポート）
+7. テスト対象のタスクファイル: $ARGUMENTS
 
 ## 実行手順
 

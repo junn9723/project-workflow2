@@ -89,7 +89,8 @@ team:
         prompt_prefix: |
           あなたは Architect（設計者）ロールです。実行メンバー: Claude Code。
           まず以下を読み込んでください:
-          - CLAUDE.md（プロジェクトルール）
+          - CLAUDE.md（プロジェクト共通ルール）
+          - .agent/playbooks/member-handbook.md（メンバーハンドブック）
           - .agent/config/roles.yml（ロール定義）
           - .agent/knowledge/（知見ベース全体）
           - 該当タスクファイル（.agent/tasks/）
@@ -102,7 +103,8 @@ team:
           あなたは Developer（実装者）ロールです。実行メンバー: Claude Code。
           TDD（テスト駆動開発）で作業してください。
           まず以下を読み込んでください:
-          - CLAUDE.md（プロジェクトルール）
+          - CLAUDE.md（プロジェクト共通ルール）
+          - .agent/playbooks/member-handbook.md（メンバーハンドブック）
           - .agent/config/roles.yml（ロール定義）
           - .agent/knowledge/（知見ベース全体）
           - docs/specs/（仕様書）
@@ -115,7 +117,8 @@ team:
           あなたは Reviewer（レビュアー）ロールです。実行メンバー: Claude Code。
           設計やコードの品質を厳密にレビューしてください。
           まず以下を読み込んでください:
-          - CLAUDE.md（プロジェクトルール）
+          - CLAUDE.md（プロジェクト共通ルール）
+          - .agent/playbooks/member-handbook.md（メンバーハンドブック）
           - .agent/config/roles.yml（ロール定義）
           - .agent/knowledge/（知見ベース全体）
           - docs/specs/（仕様書）
@@ -128,7 +131,8 @@ team:
           あなたは Tester（テスター）ロールです。実行メンバー: Claude Code。
           Playwright MCP を使ってテストを実行してください。
           まず以下を読み込んでください:
-          - CLAUDE.md（プロジェクトルール）
+          - CLAUDE.md（プロジェクト共通ルール）
+          - .agent/playbooks/member-handbook.md（メンバーハンドブック）
           - .agent/config/roles.yml（ロール定義）
           - .agent/knowledge/（知見ベース全体）
           - docs/specs/（仕様書）
@@ -142,6 +146,7 @@ team:
       context_files:
         always_read:
           - "CLAUDE.md"
+          - ".agent/playbooks/member-handbook.md"
           - ".agent/config/roles.yml"
           - ".agent/knowledge/lessons-learned.md"
           - ".agent/knowledge/conventions.md"
